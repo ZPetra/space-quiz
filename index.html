@@ -454,6 +454,7 @@
   let current = 0;
   let score = 0;
   let locked = false;
+  let playQuestions = [];
 
   const questionCounter = document.getElementById('question-counter');
   const scoreEl = document.getElementById('score');
@@ -466,9 +467,29 @@
   const resultsScreen = document.getElementById('results-screen');
   const restartBtn = document.getElementById('restart-btn');
 
+  function shuffle(items) {
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const randomIndex = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function createPlaythrough() {
+    return shuffle(questions).map(question => {
+      const options = shuffle(question.options.map((text, index) => ({ text, index })));
+      return {
+        q: question.q,
+        options: options.map(option => option.text),
+        answer: options.findIndex(option => option.index === question.answer)
+      };
+    });
+  }
+
   function renderQuestion() {
     locked = false;
-    const q = questions[current];
+    const q = playQuestions[current];
     questionCounter.textContent = `Question ${current + 1} / ${questions.length}`;
     scoreEl.textContent = score;
     progressFill.style.width = `${(current / questions.length) * 100}%`;
@@ -490,7 +511,7 @@
   function selectOption(idx, btn) {
     if (locked) return;
     locked = true;
-    const q = questions[current];
+    const q = playQuestions[current];
     const optionButtons = optionsEl.querySelectorAll('.option');
     optionButtons.forEach(b => b.disabled = true);
 
@@ -549,6 +570,7 @@
   function restart() {
     current = 0;
     score = 0;
+    playQuestions = createPlaythrough();
     resultsScreen.classList.add('hidden');
     quizScreen.classList.remove('hidden');
     renderQuestion();
@@ -557,7 +579,7 @@
   nextBtn.addEventListener('click', nextQuestion);
   restartBtn.addEventListener('click', restart);
 
-  renderQuestion();
+  restart();
 </script>
 </body>
 </html>
